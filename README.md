@@ -37,7 +37,6 @@ It includes:
 | 💬 **Inline Error Messages** | Beautiful form validation and alerts                   |
 | 💾 **MongoDB Integration**   | Persistent database using Mongoose                     |
 | 🧰 **REST API**              | Express-based backend                                  |
-| 🧪 **Testing**               | API + Model testing using Jest + Supertest             |
 | ⚙️ **Deployment Ready**      | Backend on Render, Frontend on Netlify                 |
 | 🧭 **Responsive Design**     | Fully responsive for mobile & desktop                  |
 | 🔐 **.env Configuration**    | Secure environment variables                           |
