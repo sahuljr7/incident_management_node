@@ -1,21 +1,44 @@
+<!-- 
+  Declaring the document type and setting the HTML language to English.
+  This ensures the browser knows it's an HTML5 document.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Character encoding ensures proper display of text -->
   <meta charset="UTF-8" />
+
+  <!-- Responsive design setup so it looks good on mobile and desktop -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Page title shown in browser tab -->
   <title>Incident Management System</title>
+
+  <!-- Linking external CSS stylesheet for styling the page -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
+  <!-- 
+    HEADER SECTION
+    Displays the title or brand name of the application.
+  -->
   <header>
     <h1>Incident Management Dashboard</h1>
   </header>
 
+  <!-- 
+    MAIN SECTION
+    Contains the core content of the page: filters, table, and modals.
+  -->
   <main>
 
-    <!-- FILTER + CREATE -->
+    <!-- 
+      FILTER + CREATE SECTION
+      Includes a button to create new incidents and a dropdown filter
+      to view incidents by their status (All, Open, or Closed).
+    -->
     <div class="top-bar">
       <button id="btnCreateIncident" class="primary-btn">Create Incident</button>
 
@@ -26,11 +49,21 @@
       </select>
     </div>
 
-    <!-- LOADER -->
+    <!-- 
+      LOADER SECTION
+      A spinner element that appears when the app is fetching data from the backend.
+      The "hidden" class keeps it invisible until it's needed.
+    -->
     <div id="loader" class="loader hidden"></div>
 
+    <!-- Heading for the incidents list table -->
     <h2>All Incidents</h2>
 
+    <!-- 
+      INCIDENT TABLE
+      Displays all the incidents fetched from the backend API.
+      The body is dynamically filled using JavaScript.
+    -->
     <table id="incidentTable">
       <thead>
         <tr>
@@ -47,73 +80,101 @@
     </table>
   </main>
 
-  <!-- CREATE MODAL -->
+  <!-- 
+    CREATE MODAL
+    A popup form that appears when the user clicks "Create Incident".
+    Allows adding new incidents by filling required fields.
+  -->
   <div id="modalOverlay" class="modal-overlay">
     <div class="modal">
+      <!-- Close button (× symbol) to close the modal -->
       <span class="close-btn" id="closeModal">&times;</span>
       <h2>Create New Incident</h2>
 
+      <!-- Form for submitting new incident details -->
       <form id="incidentForm">
 
+        <!-- Incident Type -->
         <label>Incident Type *</label>
         <input id="type" required />
         <span class="error-message" id="typeError"></span>
 
+        <!-- Incident Start Date -->
         <label>Incident Start Date *</label>
         <input type="date" id="incidentStartDate" required />
         <span class="error-message" id="startError"></span>
 
+        <!-- Incident End Date -->
         <label>Incident End Date</label>
         <input type="date" id="incidentEndDate" />
         <span class="error-message" id="endError"></span>
 
+        <!-- Description -->
         <label>Description *</label>
         <textarea id="description" required></textarea>
         <span class="error-message" id="descriptionError"></span>
 
+        <!-- Optional remarks -->
         <label>Remarks</label>
         <textarea id="remarks"></textarea>
 
+        <!-- Submit button to create a new incident -->
         <button type="submit" class="primary-btn">Submit</button>
       </form>
     </div>
   </div>
 
-  <!-- UPDATE MODAL -->
+  <!-- 
+    UPDATE MODAL
+    A similar popup form used to edit existing incidents.
+    This form gets pre-filled with existing data via JavaScript.
+  -->
   <div id="updateModalOverlay" class="modal-overlay">
     <div class="modal">
+      <!-- Close button (× symbol) to close the update modal -->
       <span class="close-btn" id="closeUpdateModal">&times;</span>
       <h2>Update Incident</h2>
 
+      <!-- Update form -->
       <form id="updateForm">
 
+        <!-- Hidden input to store the unique ID of the incident being updated -->
         <input type="hidden" id="updateId" />
 
+        <!-- Incident Type -->
         <label>Incident Type *</label>
         <input id="updateType" required />
         <span class="error-message" id="updateTypeError"></span>
 
+        <!-- Start Date -->
         <label>Incident Start Date *</label>
         <input type="date" id="updateIncidentStartDate" required />
         <span class="error-message" id="updateStartError"></span>
 
+        <!-- End Date -->
         <label>Incident End Date</label>
         <input type="date" id="updateIncidentEndDate" />
         <span class="error-message" id="updateEndError"></span>
 
+        <!-- Description -->
         <label>Description *</label>
         <textarea id="updateDescription" required></textarea>
         <span class="error-message" id="updateDescriptionError"></span>
 
+        <!-- Optional remarks -->
         <label>Remarks</label>
         <textarea id="updateRemarks"></textarea>
 
+        <!-- Submit button to save updates -->
         <button type="submit" class="primary-btn">Update</button>
       </form>
-
     </div>
   </div>
 
+  <!-- 
+    Including the external JavaScript file that handles all interactivity,
+    API calls, form submissions, and dynamic rendering.
+  -->
   <script src="script.js"></script>
 
 </body>

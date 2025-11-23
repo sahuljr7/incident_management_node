@@ -1,12 +1,20 @@
-// ✅ Automatically switch between local & deployed backend
+/* 
+  Automatically switching between local and deployed backend API URLs.
+  - If the app is running locally (hostname = "localhost"), it uses the local server.
+  - Otherwise, it uses the deployed backend URL on Render.
+*/
 const API_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:3000/api/incidents"
     : "https://incident-management-node.onrender.com/api/incidents";
 
-// ------------------------------
-// DOM Elements
-// ------------------------------
+/* 
+  ------------------------------
+  DOM ELEMENT REFERENCES
+  ------------------------------
+  Storing references to all the key HTML elements used in the app.
+  These will help in opening modals, reading form inputs, updating the table, etc.
+*/
 const modalOverlay = document.getElementById("modalOverlay");
 const updateModalOverlay = document.getElementById("updateModalOverlay");
 const btnCreateIncident = document.getElementById("btnCreateIncident");
@@ -18,9 +26,13 @@ const tableBody = document.getElementById("incidentTableBody");
 const statusFilter = document.getElementById("statusFilter");
 const loader = document.getElementById("loader");
 
-// ------------------------------
-// LOADER + BUTTON DISABLE/ENABLE
-// ------------------------------
+/* 
+  ------------------------------
+  LOADER + BUTTON DISABLE/ENABLE
+  ------------------------------
+  These helper functions show/hide the loading spinner
+  and disable/enable buttons during API calls to prevent multiple clicks.
+*/
 function showLoader() { loader.classList.remove("hidden"); }
 function hideLoader() { loader.classList.add("hidden"); }
 
@@ -31,51 +43,70 @@ function enableButtons() {
   document.querySelectorAll("button").forEach(btn => btn.disabled = false);
 }
 
-// ------------------------------
-// API REQUEST WRAPPER (with error handling)
-// ------------------------------
+/* 
+  ------------------------------
+  API REQUEST WRAPPER
+  ------------------------------
+  A reusable function that wraps all fetch() calls.
+  - Handles GET, POST, PUT, PATCH requests.
+  - Shows loader, disables buttons, handles errors gracefully.
+*/
 async function apiRequest(url, method = "GET", data = null) {
   showLoader();
   disableButtons();
 
   try {
+    // Sending an HTTP request with optional data
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: data ? JSON.stringify(data) : null,
     });
 
+    /* 
+      If the response is not OK (status not in 200 range),
+      handle it manually to show user-friendly messages.
+    */
     if (!res.ok) {
-      // Non-200 responses still need graceful handling
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.message || `HTTP ${res.status}`);
     }
 
+    // Returning JSON data from the API if successful
     return await res.json();
   } catch (error) {
+    // Logging network or server errors
     console.error("Network/API error while calling:", url, error);
     alert("⚠ Unable to reach the server. Please try again later.");
     return { success: false, message: "Network Error" };
   } finally {
+    // Hiding loader and re-enabling buttons after the request finishes
     hideLoader();
     enableButtons();
   }
 }
 
-// ------------------------------
-// API FUNCTIONS
-// ------------------------------
+/* 
+  ------------------------------
+  API FUNCTIONS
+  ------------------------------
+  Wrapping all backend endpoints into simple, reusable functions.
+  These functions call the above apiRequest() with proper URLs and methods.
+*/
 const getAllIncidents = () => apiRequest(API_URL);
 const getIncident = (id) => apiRequest(`${API_URL}/${id}`);
 const createIncident = (data) => apiRequest(API_URL, "POST", data);
-const updateIncidentAPI = (id, data) =>
-  apiRequest(`${API_URL}/${id}`, "PUT", data);
-const closeIncident = (id) =>
-  apiRequest(`${API_URL}/${id}/close`, "PATCH");
+const updateIncidentAPI = (id, data) => apiRequest(`${API_URL}/${id}`, "PUT", data);
+const closeIncident = (id) => apiRequest(`${API_URL}/${id}/close`, "PATCH");
 
-// ------------------------------
-// VALIDATION FUNCTION
-// ------------------------------
+/* 
+  ------------------------------
+  FORM VALIDATION
+  ------------------------------
+  Validates input fields before sending data to backend.
+  - Ensures required fields are filled.
+  - Checks that end date is after start date.
+*/
 function validateForm(fields) {
   let valid = true;
 
@@ -90,7 +121,7 @@ function validateForm(fields) {
     }
   });
 
-  // Date validation
+  // Checking if end date is after start date
   const start = fields.start.element.value;
   const end = fields.end.element.value;
 
@@ -103,9 +134,13 @@ function validateForm(fields) {
   return valid;
 }
 
-// ------------------------------
-// TABLE RENDER
-// ------------------------------
+/* 
+  ------------------------------
+  TABLE RENDERING
+  ------------------------------
+  Responsible for fetching all incidents and displaying them in a table.
+  Filters by status and shows friendly messages for empty or failed data.
+*/
 function formatDate(date) {
   return date ? new Date(date).toLocaleDateString() : "-";
 }
@@ -129,6 +164,7 @@ async function loadIncidents() {
     return;
   }
 
+  // Dynamically generating table rows for each incident
   incidents.forEach(inc => {
     tableBody.innerHTML += `
       <tr>
@@ -147,20 +183,22 @@ async function loadIncidents() {
   });
 }
 
-// ------------------------------
-// CREATE MODAL HANDLERS
-// ------------------------------
+/* 
+  ------------------------------
+  MODAL HANDLERS
+  ------------------------------
+  These handle opening and closing of the "Create" and "Update" modals.
+*/
 btnCreateIncident.onclick = () => (modalOverlay.style.display = "flex");
 closeModal.onclick = () => (modalOverlay.style.display = "none");
-
-// ------------------------------
-// UPDATE MODAL HANDLERS
-// ------------------------------
 closeUpdateModal.onclick = () => (updateModalOverlay.style.display = "none");
 
-// ------------------------------
-// CREATE FORM SUBMIT
-// ------------------------------
+/* 
+  ------------------------------
+  CREATE INCIDENT FORM SUBMISSION
+  ------------------------------
+  Collects form data, validates it, and sends it to the backend via createIncident().
+*/
 incidentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -185,7 +223,6 @@ incidentForm.addEventListener("submit", async (e) => {
 
   if (!res.success) {
     alert(res.message || "Server error!");
-
     if (res.errors) {
       Object.keys(res.errors).forEach(key => {
         const span = document.getElementById(key + "Error");
@@ -201,9 +238,12 @@ incidentForm.addEventListener("submit", async (e) => {
   loadIncidents();
 });
 
-// ------------------------------
-// OPEN UPDATE MODAL
-// ------------------------------
+/* 
+  ------------------------------
+  OPEN UPDATE MODAL
+  ------------------------------
+  Fetches specific incident data and pre-fills the update form fields.
+*/
 async function openUpdateModal(id) {
   const res = await getIncident(id);
   if (!res.success || !res.data) {
@@ -222,9 +262,12 @@ async function openUpdateModal(id) {
   updateModalOverlay.style.display = "flex";
 }
 
-// ------------------------------
-// UPDATE SUBMIT
-// ------------------------------
+/* 
+  ------------------------------
+  UPDATE INCIDENT SUBMISSION
+  ------------------------------
+  Validates updated form data and sends it to backend for saving.
+*/
 updateForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -238,7 +281,6 @@ updateForm.addEventListener("submit", async (e) => {
   if (!validateForm(fields)) return;
 
   const id = updateId.value;
-
   const data = {
     type: updateType.value.trim(),
     incidentStartDate: updateIncidentStartDate.value,
@@ -267,9 +309,12 @@ updateForm.addEventListener("submit", async (e) => {
   loadIncidents();
 });
 
-// ------------------------------
-// CLOSE INCIDENT
-// ------------------------------
+/* 
+  ------------------------------
+  CLOSE INCIDENT
+  ------------------------------
+  Confirms user action, then marks an incident as closed using PATCH request.
+*/
 async function handleClose(id) {
   if (!confirm("Are you sure you want to close this incident?")) return;
 
@@ -283,12 +328,18 @@ async function handleClose(id) {
   }
 }
 
-// ------------------------------
-// FILTER CHANGE
-// ------------------------------
+/* 
+  ------------------------------
+  FILTER CHANGE HANDLER
+  ------------------------------
+  Reloads the incident list when the user changes the filter (open/closed/all).
+*/
 statusFilter.addEventListener("change", loadIncidents);
 
-// ------------------------------
-// INITIAL LOAD
-// ------------------------------
+/* 
+  ------------------------------
+  INITIAL LOAD
+  ------------------------------
+  Loads incidents automatically when the page first opens.
+*/
 window.onload = loadIncidents;
