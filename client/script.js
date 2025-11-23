@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/api/incidents";
+const API_URL = "https://incident-management-node.onrender.com/";
 
 // DOM Elements
 const modalOverlay = document.getElementById("modalOverlay");
