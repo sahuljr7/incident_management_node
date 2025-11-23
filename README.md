@@ -1,6 +1,6 @@
 # 📘 **Incident Management System**
 
-A complete **MERN-stack (Node.js + Express + MongoDB + Vanilla JS)** project for managing incidents.
+A complete **full-stack (Node.js + Express + MongoDB + Vanilla JS)** project for managing incidents.
 Built step-by-step from **Day 1 → Day 10** with backend APIs, frontend UI, validation, error handling, testing, and deployment.
 
 ---
@@ -121,7 +121,7 @@ Create a `.env` file in the root directory:
 
 ```
 PORT=3000
-MONGO_URI=mongodb://127.0.0.1:27017/incidentsdb
+MONGO_URI=your-mongodb-atlas-uri
 ```
 
 ### 4️⃣ Start the Server
@@ -168,7 +168,7 @@ Run locally by opening `client/public/index.html` in a browser.
 3. Add environment variables:
 
    ```
-   PORT=10000
+   PORT=3000
    MONGO_URI=your-mongodb-atlas-uri
    ```
 4. Build Command:
@@ -179,7 +179,7 @@ Run locally by opening `client/public/index.html` in a browser.
 5. Start Command:
 
    ```
-   npm start
+   npm run dev
    ```
 6. Deploy → Note the live URL, e.g.
    `https://incident-management-node.onrender.com`
@@ -200,7 +200,7 @@ const API_URL =
     : "https://incident-management-node.onrender.com/api/incidents";
 ```
 
-5. Deploy site → done 🎉
+5. Deploy site → done
 
 ---
 
