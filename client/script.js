@@ -1,6 +1,12 @@
-const API_URL = "https://incident-management-node.onrender.com/";
+// ✅ Automatically switch between local & deployed backend
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000/api/incidents"
+    : "https://incident-management-node.onrender.com/api/incidents";
 
+// ------------------------------
 // DOM Elements
+// ------------------------------
 const modalOverlay = document.getElementById("modalOverlay");
 const updateModalOverlay = document.getElementById("updateModalOverlay");
 const btnCreateIncident = document.getElementById("btnCreateIncident");
@@ -15,7 +21,6 @@ const loader = document.getElementById("loader");
 // ------------------------------
 // LOADER + BUTTON DISABLE/ENABLE
 // ------------------------------
-
 function showLoader() { loader.classList.remove("hidden"); }
 function hideLoader() { loader.classList.add("hidden"); }
 
@@ -27,7 +32,7 @@ function enableButtons() {
 }
 
 // ------------------------------
-// API REQUEST WRAPPER (ERROR SAFE)
+// API REQUEST WRAPPER (with error handling)
 // ------------------------------
 async function apiRequest(url, method = "GET", data = null) {
   showLoader();
@@ -37,22 +42,29 @@ async function apiRequest(url, method = "GET", data = null) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: data ? JSON.stringify(data) : null
+      body: data ? JSON.stringify(data) : null,
     });
+
+    if (!res.ok) {
+      // Non-200 responses still need graceful handling
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `HTTP ${res.status}`);
+    }
+
     return await res.json();
-
   } catch (error) {
-    alert("⚠ Network Error! Please check your internet connection.");
-    console.error("Network error:", error);
-    return { success: false };
-
+    console.error("Network/API error while calling:", url, error);
+    alert("⚠ Unable to reach the server. Please try again later.");
+    return { success: false, message: "Network Error" };
   } finally {
     hideLoader();
     enableButtons();
   }
 }
 
+// ------------------------------
 // API FUNCTIONS
+// ------------------------------
 const getAllIncidents = () => apiRequest(API_URL);
 const getIncident = (id) => apiRequest(`${API_URL}/${id}`);
 const createIncident = (data) => apiRequest(API_URL, "POST", data);
@@ -82,12 +94,10 @@ function validateForm(fields) {
   const start = fields.start.element.value;
   const end = fields.end.element.value;
 
-  if (start && end) {
-    if (new Date(end) < new Date(start)) {
-      fields.end.element.classList.add("error");
-      fields.end.errorSpan.textContent = "End date must be after start date";
-      valid = false;
-    }
+  if (start && end && new Date(end) < new Date(start)) {
+    fields.end.element.classList.add("error");
+    fields.end.errorSpan.textContent = "End date must be after start date";
+    valid = false;
   }
 
   return valid;
@@ -104,7 +114,10 @@ async function loadIncidents() {
   const filter = statusFilter.value;
   const res = await getAllIncidents();
 
-  if (!res.success) return;
+  if (!res.success || !res.data) {
+    tableBody.innerHTML = `<tr><td colspan="7">⚠ Unable to load incidents</td></tr>`;
+    return;
+  }
 
   let incidents = res.data;
   if (filter !== "all") incidents = incidents.filter(i => i.status === filter);
@@ -125,7 +138,6 @@ async function loadIncidents() {
         <td><span class="status-badge ${inc.status}">${inc.status}</span></td>
         <td>${inc.description}</td>
         <td>${inc.remarks || "-"}</td>
-
         <td>
           <button class="action-btn update-btn" onclick="openUpdateModal('${inc._id}')">Update</button>
           <button class="action-btn close-btn2" onclick="handleClose('${inc._id}')">Close</button>
@@ -144,8 +156,7 @@ closeModal.onclick = () => (modalOverlay.style.display = "none");
 // ------------------------------
 // UPDATE MODAL HANDLERS
 // ------------------------------
-closeUpdateModal.onclick = () =>
-  (updateModalOverlay.style.display = "none");
+closeUpdateModal.onclick = () => (updateModalOverlay.style.display = "none");
 
 // ------------------------------
 // CREATE FORM SUBMIT
@@ -157,7 +168,7 @@ incidentForm.addEventListener("submit", async (e) => {
     type: { element: type, errorSpan: typeError, required: true },
     start: { element: incidentStartDate, errorSpan: startError, required: true },
     end: { element: incidentEndDate, errorSpan: endError, required: false },
-    description: { element: description, errorSpan: descriptionError, required: true }
+    description: { element: description, errorSpan: descriptionError, required: true },
   };
 
   if (!validateForm(fields)) return;
@@ -167,7 +178,7 @@ incidentForm.addEventListener("submit", async (e) => {
     incidentStartDate: incidentStartDate.value,
     incidentEndDate: incidentEndDate.value || null,
     description: description.value.trim(),
-    remarks: remarks.value.trim()
+    remarks: remarks.value.trim(),
   };
 
   const res = await createIncident(data);
@@ -184,7 +195,7 @@ incidentForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  alert("Incident created successfully!");
+  alert("✅ Incident created successfully!");
   modalOverlay.style.display = "none";
   incidentForm.reset();
   loadIncidents();
@@ -195,10 +206,12 @@ incidentForm.addEventListener("submit", async (e) => {
 // ------------------------------
 async function openUpdateModal(id) {
   const res = await getIncident(id);
-  if (!res.success) return;
+  if (!res.success || !res.data) {
+    alert("⚠ Unable to fetch incident details");
+    return;
+  }
 
   const inc = res.data;
-
   updateId.value = inc._id;
   updateType.value = inc.type;
   updateIncidentStartDate.value = inc.incidentStartDate?.split("T")[0];
@@ -219,7 +232,7 @@ updateForm.addEventListener("submit", async (e) => {
     type: { element: updateType, errorSpan: updateTypeError, required: true },
     start: { element: updateIncidentStartDate, errorSpan: updateStartError, required: true },
     end: { element: updateIncidentEndDate, errorSpan: updateEndError, required: false },
-    description: { element: updateDescription, errorSpan: updateDescriptionError, required: true }
+    description: { element: updateDescription, errorSpan: updateDescriptionError, required: true },
   };
 
   if (!validateForm(fields)) return;
@@ -231,24 +244,25 @@ updateForm.addEventListener("submit", async (e) => {
     incidentStartDate: updateIncidentStartDate.value,
     incidentEndDate: updateIncidentEndDate.value || null,
     description: updateDescription.value.trim(),
-    remarks: updateRemarks.value.trim()
+    remarks: updateRemarks.value.trim(),
   };
 
   const res = await updateIncidentAPI(id, data);
 
   if (!res.success) {
     alert(res.message || "Update failed!");
-
     if (res.errors) {
       Object.keys(res.errors).forEach(key => {
-        const span = document.getElementById("update" + key.charAt(0).toUpperCase() + key.slice(1) + "Error");
+        const span = document.getElementById(
+          "update" + key.charAt(0).toUpperCase() + key.slice(1) + "Error"
+        );
         if (span) span.textContent = res.errors[key];
       });
     }
     return;
   }
 
-  alert("Incident updated successfully!");
+  alert("✅ Incident updated successfully!");
   updateModalOverlay.style.display = "none";
   loadIncidents();
 });
@@ -262,10 +276,10 @@ async function handleClose(id) {
   const res = await closeIncident(id);
 
   if (res.success) {
-    alert("Incident closed!");
+    alert("Incident closed successfully!");
     loadIncidents();
   } else {
-    alert("Failed to close incident!");
+    alert("⚠ Failed to close incident!");
   }
 }
 
