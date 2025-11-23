@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Incident Management System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header>
+    <h1>Incident Management Dashboard</h1>
+  </header>
+
+  <main>
+
+    <!-- FILTER + CREATE -->
+    <div class="top-bar">
+      <button id="btnCreateIncident" class="primary-btn">Create Incident</button>
+
+      <select id="statusFilter" class="filter-dropdown">
+        <option value="all">All Incidents</option>
+        <option value="open">Open</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader hidden"></div>
+
+    <h2>All Incidents</h2>
+
+    <table id="incidentTable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+          <th>Description</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="incidentTableBody"></tbody>
+    </table>
+  </main>
+
+  <!-- CREATE MODAL -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <span class="close-btn" id="closeModal">&times;</span>
+      <h2>Create New Incident</h2>
+
+      <form id="incidentForm">
+
+        <label>Incident Type *</label>
+        <input id="type" required />
+        <span class="error-message" id="typeError"></span>
+
+        <label>Incident Start Date *</label>
+        <input type="date" id="incidentStartDate" required />
+        <span class="error-message" id="startError"></span>
+
+        <label>Incident End Date</label>
+        <input type="date" id="incidentEndDate" />
+        <span class="error-message" id="endError"></span>
+
+        <label>Description *</label>
+        <textarea id="description" required></textarea>
+        <span class="error-message" id="descriptionError"></span>
+
+        <label>Remarks</label>
+        <textarea id="remarks"></textarea>
+
+        <button type="submit" class="primary-btn">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- UPDATE MODAL -->
+  <div id="updateModalOverlay" class="modal-overlay">
+    <div class="modal">
+      <span class="close-btn" id="closeUpdateModal">&times;</span>
+      <h2>Update Incident</h2>
+
+      <form id="updateForm">
+
+        <input type="hidden" id="updateId" />
+
+        <label>Incident Type *</label>
+        <input id="updateType" required />
+        <span class="error-message" id="updateTypeError"></span>
+
+        <label>Incident Start Date *</label>
+        <input type="date" id="updateIncidentStartDate" required />
+        <span class="error-message" id="updateStartError"></span>
+
+        <label>Incident End Date</label>
+        <input type="date" id="updateIncidentEndDate" />
+        <span class="error-message" id="updateEndError"></span>
+
+        <label>Description *</label>
+        <textarea id="updateDescription" required></textarea>
+        <span class="error-message" id="updateDescriptionError"></span>
+
+        <label>Remarks</label>
+        <textarea id="updateRemarks"></textarea>
+
+        <button type="submit" class="primary-btn">Update</button>
+      </form>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
