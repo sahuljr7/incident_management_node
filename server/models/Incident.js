@@ -60,6 +60,33 @@ const incidentSchema = new mongoose.Schema({
 });
 
 /* 
+  🔹 AUTO-CLOSE LOGIC:
+  Before fetching incidents (find/findOne), this hook will automatically
+  check if the current date is past the incidentEndDate for any "open" incidents.
+  If yes, it updates those incidents to "closed" automatically.
+*/
+incidentSchema.pre(["find", "findOne"], async function (next) {
+  const now = new Date();
+
+  try {
+    // Find all incidents where end date has passed but status is still open
+    await mongoose.model("Incident").updateMany(
+      {
+        incidentEndDate: { $ne: null, $lt: now },
+        status: "open"
+      },
+      {
+        $set: { status: "closed", updatedAt: now }
+      }
+    );
+  } catch (err) {
+    console.error("Auto-close update failed:", err.message);
+  }
+
+  next();
+});
+
+/* 
   Exporting the schema as a model named "Incident".
   - The model connects this schema with the "incidents" collection in MongoDB.
   - It allows performing operations like find(), create(), update(), and delete() on that collection.
